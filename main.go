@@ -16,7 +16,7 @@ import (
 var applicationName = getEnvOrDefault("APP_NAME", "DnsChecker-Local")
 var logglyToken = getEnvOrDefault("APP_LOGGLY_TOKEN", "")
 var nameServers = getEnvArrayOrDefault("APP_NAMESERVERS", []string{"8.8.8.8"})
-var hostNames = getEnvArrayOrDefault("APP_HOSTNAMES", []string{"www.google.com"})
+var hostNames = getEnvArrayOrDefault("APP_HOSTNAMES", []string{"google.com"})
 
 var logger = log.WithField("Application", applicationName)
 var loggly = logrusly.NewLogglyHook(logglyToken, applicationName, log.InfoLevel, applicationName)
