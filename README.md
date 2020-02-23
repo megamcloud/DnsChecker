@@ -9,7 +9,7 @@ In order to run DnsChecker you have three options;
 ### Docker
 
 ``` bash
-docker run mkromamp/dnschecker:latest
+docker run mkromkamp/dnschecker:latest
 ```
 
 ### Binary
