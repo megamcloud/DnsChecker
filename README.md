@@ -1,3 +1,5 @@
+![Go](https://github.com/mkromkamp/DnsChecker/workflows/Go/badge.svg)
+
 # DnsChecker
 
 Small application to query specific dns servers for host names.
