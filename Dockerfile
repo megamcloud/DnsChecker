@@ -1,3 +1,4 @@
+# Build container
 FROM golang:1.13-alpine as builder
 
 RUN apk add --no-cache git
@@ -15,4 +16,12 @@ COPY . .
 # Build
 RUN go build -o ./out/dnschecker .
 
-CMD ["./out/dnschecker"]
+# Run container
+FROM alpine:3
+
+WORKDIR /app
+
+COPY --from=builder /app/out/dnschecker .
+
+CMD ["./dnschecker"]
+
