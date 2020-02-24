@@ -8,6 +8,8 @@ In order to run DnsChecker you have three options;
 
 ### Docker
 
+Run the [docker image](https://hub.docker.com/r/mkromkamp/dnschecker) from docker hub;
+
 ``` bash
 docker run mkromkamp/dnschecker:latest
 ```
