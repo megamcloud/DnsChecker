@@ -24,6 +24,14 @@ Download the binary from the releases page;
 chmod +x dnschecker && ./dnschecker
 ```
 
+## Build from source
+
+Pull down this repository.
+
+```
+go build main.go metrics.go
+```
+
 ## Configuration
 
 | Var | Default | Description |
