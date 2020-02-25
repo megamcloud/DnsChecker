@@ -23,5 +23,7 @@ WORKDIR /app
 
 COPY --from=builder /app/out/dnschecker .
 
+EXPOSE 8080
+
 CMD ["./dnschecker"]
 

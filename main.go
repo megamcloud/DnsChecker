@@ -13,13 +13,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var applicationName = getEnvOrDefault("APP_NAME", "DnsChecker-Local")
-var logglyToken = getEnvOrDefault("APP_LOGGLY_TOKEN", "")
-var nameServers = getEnvArrayOrDefault("APP_NAMESERVERS", []string{"8.8.8.8"})
-var hostNames = getEnvArrayOrDefault("APP_HOSTNAMES", []string{"google.com"})
+var (
+	applicationName = getEnvOrDefault("APP_NAME", "DnsChecker-Local")
+	logglyToken     = getEnvOrDefault("APP_LOGGLY_TOKEN", "")
+	nameServers     = getEnvArrayOrDefault("APP_NAMESERVERS", []string{"8.8.8.8"})
+	hostNames       = getEnvArrayOrDefault("APP_HOSTNAMES", []string{"google.com"})
 
-var logger = log.WithField("Application", applicationName)
-var loggly = logrusly.NewLogglyHook(logglyToken, applicationName, log.InfoLevel, applicationName)
+	logger = log.WithField("Application", applicationName)
+	loggly = logrusly.NewLogglyHook(logglyToken, applicationName, log.InfoLevel, applicationName)
+)
 
 func init() {
 	log.SetFormatter(&log.JSONFormatter{})
@@ -41,6 +43,8 @@ func main() {
 	for _, nameServer := range nameServers {
 		go checkNameServer(ctx, nameServer, hostNames)
 	}
+
+	go exposeMetrics()
 
 	<-c
 	logger.Info("Starting graceful shutdown")
@@ -70,9 +74,11 @@ func checkNameServer(ctx context.Context, nameServer string, hostNames []string)
 			ips, err := resolver.LookupIPAddr(ctx, hostName)
 			if err != nil {
 				hostNameLogger.Error(err)
+				dnsCounter.WithLabelValues("false", nameServer, hostName).Inc()
 				continue
 			}
 
+			dnsCounter.WithLabelValues("true", nameServer, hostName).Inc()
 			hostNameLogger.Debug(ips)
 		}
 
