@@ -1,4 +1,5 @@
 ![CI](https://github.com/mkromkamp/DnsChecker/workflows/CI/badge.svg)
+![Release](https://github.com/mkromkamp/DnsChecker/workflows/Release/badge.svg)
 
 # DnsChecker
 
