@@ -1,4 +1,4 @@
-![Go](https://github.com/mkromkamp/DnsChecker/workflows/Go/badge.svg)
+![CI](https://github.com/mkromkamp/DnsChecker/workflows/CI/badge.svg)
 
 # DnsChecker
 
