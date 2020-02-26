@@ -1,6 +1,6 @@
 module github.com/mkromkamp/DnsChecker
 
-go 1.13
+go 1.14
 
 require (
 	github.com/caarlos0/env/v6 v6.2.0
