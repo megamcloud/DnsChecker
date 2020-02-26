@@ -1,5 +1,5 @@
 env GOOS=linux GOARCH=amd64 go build -o dnschecker *.go
 env GOOS=linux GOARCH=386 go build -o dnschecker-x86 *.go
-env GOOS=linux GOARCH=arm go build -o dnschecker-arm64 *.go
+env GOOS=linux GOARCH=arm go build -o dnschecker-arm32 *.go
 env GOOS=linux GOARCH=arm64 go build -o dnschecker-arm64 *.go
 env GOOS=windows GOARCH=amd64 go build -o dnschecker.exe *.go
