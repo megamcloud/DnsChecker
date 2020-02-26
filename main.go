@@ -5,60 +5,54 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
-	"github.com/sebest/logrusly"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
-var (
-	applicationName = getEnvOrDefault("APP_NAME", "DnsChecker-Local")
-	logglyToken     = getEnvOrDefault("APP_LOGGLY_TOKEN", "")
-	nameServers     = getEnvArrayOrDefault("APP_NAMESERVERS", []string{"8.8.8.8"})
-	hostNames       = getEnvArrayOrDefault("APP_HOSTNAMES", []string{"google.com"})
+type app struct {
+	Logger  *logrus.Entry
+	Config  *config
+	Metrics *metrics
+}
 
-	logger = log.WithField("Application", applicationName)
-	loggly = logrusly.NewLogglyHook(logglyToken, applicationName, log.InfoLevel, applicationName)
-)
+func newApp() *app {
+	var config = getConfig()
+	var logger = newLogger(config)
+	var metrics = newMetrics(config)
 
-func init() {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
-
-	if logglyToken != "" {
-		log.AddHook(loggly)
-	} else {
-		log.Info("No Loggly token found, only logging to console")
+	return &app{
+		Logger:  logger,
+		Config:  config,
+		Metrics: metrics,
 	}
 }
 
 func main() {
+	app := newApp()
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	ctx := context.Background()
 
-	for _, nameServer := range nameServers {
-		go checkNameServer(ctx, nameServer, hostNames)
+	for _, nameServer := range app.Config.NameServers {
+		go app.checkNameServer(ctx, nameServer)
 	}
 
-	go exposeMetrics()
+	go app.serveMetrics()
 
 	<-c
-	logger.Info("Starting graceful shutdown")
+	app.Logger.Info("Starting graceful shutdown")
 
-	loggly.Flush()
 	ctx, cancel := context.WithTimeout(ctx, 5000*time.Millisecond)
 	defer cancel()
 
-	logger.Info("Stopping application")
+	app.Logger.Info("Stopping application")
 }
 
-func checkNameServer(ctx context.Context, nameServer string, hostNames []string) {
-	nsLogger := logger.WithField("NameServer", nameServer)
-	nsLogger.Info("Start checking ", hostNames, " on nameserver ", nameServer)
+func (app *app) checkNameServer(ctx context.Context, nameServer string) {
+	nsLogger := app.Logger.WithField("NameServer", nameServer)
+	nsLogger.Info("Start checking ", app.Config.HostNames, " on nameserver ", nameServer)
 
 	resolver := &net.Resolver{
 		PreferGo: true,
@@ -69,35 +63,19 @@ func checkNameServer(ctx context.Context, nameServer string, hostNames []string)
 	}
 
 	for true {
-		for _, hostName := range hostNames {
+		for _, hostName := range app.Config.HostNames {
 			hostNameLogger := nsLogger.WithField("HostName", hostName)
 			ips, err := resolver.LookupIPAddr(ctx, hostName)
 			if err != nil {
 				hostNameLogger.Error(err)
-				dnsCounter.WithLabelValues("false", nameServer, hostName).Inc()
+				app.Metrics.incDNSCounter(false, nameServer, hostName)
 				continue
 			}
 
-			dnsCounter.WithLabelValues("true", nameServer, hostName).Inc()
+			app.Metrics.incDNSCounter(true, nameServer, hostName)
 			hostNameLogger.Debug(ips)
 		}
 
 		time.Sleep(10000 * time.Millisecond)
 	}
-}
-
-func getEnvOrDefault(envVar, fallback string) string {
-	if value, ok := os.LookupEnv(envVar); ok {
-		return value
-	}
-
-	return fallback
-}
-
-func getEnvArrayOrDefault(envVar string, fallback []string) []string {
-	if value := getEnvOrDefault(envVar, ""); value != "" {
-		return strings.Split(value, ",")
-	}
-
-	return fallback
 }

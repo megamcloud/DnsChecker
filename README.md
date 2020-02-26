@@ -37,13 +37,15 @@ go build main.go metrics.go
 | Var | Default | Description |
 |---|---|---|
 | APP_NAME | DnsChecker-Local | Application name, mainly used for logging |
+| APP_DEBUG | false | Run DnsChecker in debug mode |
+| APP_LISTEN_ADDR | 8080 | Port number to expose metrics |
 | APP_NAMESERVER | 8.8.8.8 | Name server to query; seperate by comma for multiple |
 | APP_HOSTNAMES | google.com | Host name to query for; seperate by comma for multiple |
 | APP_LOGGLY_TOKEN | - | Optional; Loggly token to log to Loggly |
 
 ## Metrics
 
-Metrics are exposed on port 8080, the following dns specific metric is exposed
+Metrics are exposed on port 8080 by default, the following dns specific metric is exposed
 
 `dc_dns_request_total{app=[application_name], found=[true or false], nameServer=[name server address], targetHost=[target host address]} [number of requests]`
 
